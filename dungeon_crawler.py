@@ -4,34 +4,46 @@ Dungeon Crawler final project - Lyra
 
 from modules.graph import Graph
 from modules.stack import Stack
-from modules.world import Room
+from modules.linked_list import LinkedList
+from modules.world import Room, Player
+import modules.artwork as art #evil but necessary
 
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
 visited = Stack() #for remembering our path thru the dungeon
+
 dungeon = Graph() #the graph
-#TODO create dungeon here
-"""
-Entry_Chamber           Secret Treasure Room
-     |                    |
-   Goblin Den ------ Dragon Observatorium
-     |                    |
-    Sewer               Delapidated Airship Pad
-     |
-     Rat King's Chamber
-"""
-entry_chamber = Room(1,"Entry Chamber","A marble chamber")
+worldmap = """
+o----------------------------------------------------o
+|                                             n      |
+|   Entry_Chamber      Treasure Room        e + w    |
+|     |                    |                  s      |
+|   Goblin Den ------ Dragon Observatorium           |
+|     |                    |                         |
+|    Sewer               Delapidated Airship Pad     |
+|       \                 /                          |
+|       Rat King's Chamber                           |
+|                                                    |
+o----------------------------------------------------o""" #54 wide, 10 high
+
+entry_chamber = Room(1,"Entry Chamber","A marble chamber", art.entry_chamber)
 goblin_den = Room(2,"Goblin Den",
-                   "A marble chamber covered in crude drawings and litter.")
+                   "A marble chamber covered in crude drawings and litter.", 
+                   art.goblin_den)
 sewer = Room(3, "Sewer",
-            "A dank chamber, with a pool of sewage bubbling gently in the middle")
-rat_kings_chamber = Room(4, "Rat King's Chamber", "A dark chamber, blood covers the walls.")
+            "A dank chamber, with a pool of sewage bubbling gently in the middle", 
+            art.sewer)
+rat_kings_chamber = Room(4, "Rat King's Chamber", "A dark chamber, blood covers the walls.", 
+                         art.rat_kings_chamber)
 treasure_room = Room(5, "Secret reasure Room",
-                     "An opulent chamber, wall to cieling gleaming and gold coated.")
+                     "An opulent chamber, wall to cieling gleaming and gold coated.", 
+                     art.treasure_room)
 dragon_obs = Room(6, "Dragon Observatory",
-                  "A room with a domed glass cieling, the dragons are long gone.")
+                  "A room with a domed glass cieling, the dragons are long gone.", 
+                  art.dragon_obs)
 old_airship_pad = Room(7, "Delapidated Airship Pad",
-                   "A decaying chamber, a sheer cliff greets you on the opposite side of the room.")
+                   "A decaying chamber, a sheer cliff greets you on the opposite side of the room.", 
+                   art.old_airship_pad)
 
 #add vertices
 dungeon.add_vertex(entry_chamber)
@@ -40,17 +52,8 @@ dungeon.add_vertex(sewer)
 dungeon.add_vertex(rat_kings_chamber)
 dungeon.add_vertex(treasure_room)
 dungeon.add_vertex(dragon_obs)
-dungeon.add_vertex(old_airship_pad) #the traversal will only return which room number we get to
+dungeon.add_vertex(old_airship_pad)
 
-"""
-Entry_Chamber 1          Secret Treasure Room 5
-     |                    |
-   Goblin Den 2 ------ Dragon Observatorium 6
-     |                    |
-    Sewer 3              Delapidated Airship Pad 7
-     |
-     Rat King's Chamber 4
-"""
 #add edges
 dungeon.add_edge(entry_chamber,goblin_den)
 dungeon.add_edge(goblin_den, sewer)
@@ -58,15 +61,77 @@ dungeon.add_edge(sewer, rat_kings_chamber)
 dungeon.add_edge(goblin_den, dragon_obs)
 dungeon.add_edge(dragon_obs, treasure_room)
 dungeon.add_edge(dragon_obs, old_airship_pad)
+dungeon.add_edge(old_airship_pad, rat_kings_chamber)
 
-menu = {1:""} #base menu options here, TODO others added dynamically later?
+#events
+
+
+#player
+user = Player(entry_chamber)
+
+#screen and related display elements
+actionlines = LinkedList()
+for i in range(9):
+    actionlines.prepend("." * 30)
 
 #functions ---------------------------------------------------------- functions
+
+def print_screen():
+    """prints out the current screen"""
+    for i in range(10):
+        actionlines[i] = user.location.background[i]
+    screen = f"""
+o------------------------------o---------------------o 
+|{actionlines[0]}|                     | 
+|{actionlines[1]}|                     |
+|{actionlines[2]}|                     |
+|{actionlines[3]}|                     |
+|{actionlines[4]}|                     |
+|{actionlines[5]}|                     |
+|{actionlines[6]}|                     |
+|{actionlines[7]}|                     |
+|{actionlines[8]}|                     |
+o------------------------------o---------------------o
+HP: {user.display_hp()} MP: {user.display_mp()} """ #9 high, 52 wide inside
+    print(screen)
+
+def gleaming_sphere():
+    """prints out that the room is illumnated, returns code 'gs'"""
+    print("The room is illuminated with glowing light")
+    return "gs"
+
+#1
+def move_to_neighbor():
+    """lists neighboring rooms based on user location"""
+    neighboring_rooms = dungeon.get_neighbors(user.location)
+    #print(neighboring_rooms) debug
+    return neighboring_rooms[menu_input(neighboring_rooms) - 1].data
+
+def list_visited():
+    journey = Stack() #holds the reversed history
+    while visited.peek() != "Empty":
+        room = visited.pop()
+        print(str(room), end = ", ")
+        journey.push(room)
+    
+    #now we refill
+    while journey.peek() != "Empty":
+        visited.push(journey.pop())
+
+menu = {1:"Move to a neighboring room.",
+        2:"Show travel history."} #base menu options here, TODO others added dynamically later?
+#menus
 def menu_input(menu, bypass = False):
-    """takes nothing, returns a number corresponding to menu choice"""
+    """returns a number corresponding to menu choice, now for more iterables!"""
     if bypass == False:
-        for key, value in menu.items():
-            print(f"{key}: {value}")
+        if type(menu) == dict:
+            for key, value in menu.items():
+                print(f"{key}: {value}")
+        else:
+            count = 1
+            for item in menu:
+                print(f"{count}: {item}")
+                count +=1
     choice = input("Choose a number: ")
     
 	#input handling
@@ -87,14 +152,36 @@ def menu_choice(choice):
     the menu choices available, returns true or false to keep going or not"""
     match choice:
         case 1:
-            pass
-        case 2: #replace 2 with the last option number
-            return False
+            user.location = move_to_neighbor()
+            visited.push(user.location)
+
+            if user.location.events.peek() != "Empty":
+                user.location.events.pop()
+        case 2:
+            list_visited()
     return True #everything else
 
-#game setup -------------------------------------------------------- game steup
-dungeon.depth_first_traversal(entry_chamber)
-print(type(entry_chamber))
+def continue_game():
+    """checks if the game should end"""
+    if user.hp < 1:
+       return False
+    return True
+
+
+#game setup -------------------------------------------------------- game setup
+#dungeon.depth_first_traversal(entry_chamber)
+#print(type(entry_chamber))
+goblin_den.events.push(gleaming_sphere)
+print("        WELCOME TO DYING WIZARD SIMULATOR!", end = "")
 #game loop ---------------------------------------------------------- game loop
 while keep_going:
-    keep_going = menu_choice(menu_input(menu))
+    print_screen()
+    #print(f"HP: {user.display_hp()} MP: {user.display_mp()}")
+    print()
+    menu_choice(menu_input(menu))
+    
+
+    user.hp -= 1 #better go fast
+
+    #end loop evalutations
+    keep_going = continue_game()

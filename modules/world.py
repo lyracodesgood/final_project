@@ -2,21 +2,24 @@
 from modules.stack import Stack
 from modules.linked_list import LinkedList
 
+
 class Room():
-    def __init__(self, id, title, description, events):
+    def __init__(self, id, title, description, background, events):
         """creates a room object, events must be iterable"""
         self.id = id
         self.title = title
         self.description = description
+        self.background = background
         self.events = Stack()
         for item in events:
             self.events.push(item)
             #events will contain all items and monsters and whatnot
     
-    def __init__(self, id, title, description):
+    def __init__(self, id, title, description, background):
         self.id = id
         self.title = title
         self.description = description
+        self.background = background
         self.events = Stack()
 
     def __eq__(self, other):
@@ -37,9 +40,33 @@ class Room():
         """returns the name of the room currently"""
         return self.title
 
-class player():
-    def __init__(self):
-        self.location = "Void" #will be checked against ID to determine location
+class Player():
+    def __init__(self, room):
+        self.location = room #will be checked against ID to determine location
         self.inventory = LinkedList()
-        self.equipped = {"Hand":"Empty"}
+        self.hp = 10
+        self.mp = 10
+        
+    def pickup(self, item):
+        self.inventory.append(item)
+    
+    def display_inventory(self):
+        """returns the items in inventory in string form"""
+        r_str = ""
+        for item in self.inventory:
+            r_str += str(item)
+            if item.next == None:
+                break
+            r_str = ", "
+        return r_str
+    
+    def display_hp(self):
+        """returns a string representation of hp"""
+        return f"[{str("<3" * self.hp)}{str("  " * (10 - self.hp))}]" 
+    
+    def display_mp(self):
+        """returns a string representation of mana"""
+        return f"[{str("~*" * self.mp)}{str("  " * (10 - self.mp))}]" 
+
+
 

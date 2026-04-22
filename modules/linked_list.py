@@ -111,9 +111,9 @@ class LinkedList():
             self.head = new_node
             return
         
-        prior_node: Node #a sad variable we must use here :(
         current_node = self.head
-        while(current_node.next != None and index > 1):
+        prior_node: Node #changed this, if it breaks look at other version
+        while(current_node.next != None and index >= 1): #changed this to >= from >
             index -= 1
             prior_node = current_node
             current_node = current_node.next
