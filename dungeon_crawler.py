@@ -74,6 +74,8 @@ actionlines = LinkedList()
 for i in range(9):
     actionlines.prepend("." * 30)
 
+
+
 #functions ---------------------------------------------------------- functions
 
 def print_screen():
@@ -156,7 +158,7 @@ def menu_choice(choice):
             visited.push(user.location)
 
             if user.location.events.peek() != "Empty":
-                user.location.events.pop()
+                user.location.events.pop() #TODO finish this? idk
         case 2:
             list_visited()
     return True #everything else
