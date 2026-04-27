@@ -63,18 +63,15 @@ dungeon.add_edge(dragon_obs, treasure_room)
 dungeon.add_edge(dragon_obs, old_airship_pad)
 dungeon.add_edge(old_airship_pad, rat_kings_chamber)
 
-#events
-
-
-#player
 user = Player(entry_chamber)
+
+menu = {1:"Move to a neighboring room.",
+        2:"Show travel history."} #base menu options here, TODO others added dynamically later?
 
 #screen and related display elements
 actionlines = LinkedList()
 for i in range(9):
     actionlines.prepend("." * 30)
-
-
 
 #functions ---------------------------------------------------------- functions
 
@@ -120,8 +117,6 @@ def list_visited():
     while journey.peek() != "Empty":
         visited.push(journey.pop())
 
-menu = {1:"Move to a neighboring room.",
-        2:"Show travel history."} #base menu options here, TODO others added dynamically later?
 #menus
 def menu_input(menu, bypass = False):
     """returns a number corresponding to menu choice, now for more iterables!"""
