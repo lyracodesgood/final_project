@@ -73,10 +73,6 @@ class Graph():
         #welp didnt find a connection
         return False
     
-    def get_neighbors(self, vertex):
-        """returns a linked list containing neighboring vertices"""
-        return self.adj_list[vertex]
-    
     def is_connected(self, start, target):
         """start at a node, ,traverse the graph till you find the target,
         return true if you find, otherwise return false"""

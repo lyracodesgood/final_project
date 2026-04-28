@@ -4,22 +4,20 @@ from modules.linked_list import LinkedList
 
 
 class Room():
-    def __init__(self, id, title, description, background, events):
+    def __init__(self, id, title, description, events):
         """creates a room object, events must be iterable"""
         self.id = id
         self.title = title
         self.description = description
-        self.background = background
         self.events = Stack()
         for item in events:
             self.events.push(item)
             #events will contain all items and monsters and whatnot
     
-    def __init__(self, id, title, description, background):
+    def __init__(self, id, title, description):
         self.id = id
         self.title = title
         self.description = description
-        self.background = background
         self.events = Stack()
 
     def __eq__(self, other):

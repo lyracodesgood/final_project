@@ -11,6 +11,7 @@ from modules.world import Room, Player
 keep_going = True #for gameloop
 visited = Stack() #for remembering our path thru the dungeon
 
+
 dungeon = Graph() #the graph
 worldmap = """
 o----------------------------------------------------o
@@ -25,24 +26,44 @@ o----------------------------------------------------o
 |                                                    |
 o----------------------------------------------------o""" #54 wide, 10 high
 
-entry_chamber = Room(1,"Entry Chamber","A marble chamber", art.entry_chamber)
-goblin_den = Room(2,"Goblin Den",
-                   "A marble chamber covered in crude drawings and litter.", 
-                   art.goblin_den)
-sewer = Room(3, "Sewer",
-            "A dank chamber, with a pool of sewage bubbling gently in the middle", 
-            art.sewer)
-rat_kings_chamber = Room(4, "Rat King's Chamber", "A dark chamber, blood covers the walls.", 
-                         art.rat_kings_chamber)
-treasure_room = Room(5, "Secret reasure Room",
-                     "An opulent chamber, wall to cieling gleaming and gold coated.", 
-                     art.treasure_room)
-dragon_obs = Room(6, "Dragon Observatory",
-                  "A room with a domed glass cieling, the dragons are long gone.", 
-                  art.dragon_obs)
-old_airship_pad = Room(7, "Delapidated Airship Pad",
-                   "A decaying chamber, a sheer cliff greets you on the opposite side of the room.", 
-                   art.old_airship_pad)
+entry_chamber = Room(
+    1,
+    "Entry Chamber",
+    "A marble chamber"
+    )
+
+visited.push(entry_chamber)
+
+goblin_den = Room(
+    2,
+    "Goblin Den",
+    "A marble chamber covered in crude drawings and litter."
+    )
+sewer = Room(
+    3,
+    "Sewer",
+    "A dank chamber, with a pool of sewage bubbling gently in the middle"
+    )
+rat_kings_chamber = Room(
+    4,
+    "Rat King's Chamber", 
+    "A dark chamber, blood covers the walls."
+    )
+treasure_room = Room(
+    5,
+    "Secret reasure Room",
+    "An opulent chamber, wall to cieling gleaming and gold coated."
+    )
+dragon_obs = Room(
+    6, 
+    "Dragon Observatory",
+    "A room with a domed glass cieling, the dragons are long gone."
+    )
+old_airship_pad = Room(
+    7,
+    "Delapidated Airship Pad",
+    "A decaying chamber, a sheer cliff greets you on the opposite side of the room."
+    )
 
 #add vertices
 dungeon.add_vertex(entry_chamber)
@@ -73,15 +94,21 @@ menu = {1:"Move to a neighboring room.",
 #1
 def move_to_neighbor():
     """lists neighboring rooms based on user location"""
-    neighboring_rooms = dungeon.get_neighbors(user.location)
+    neighboring_rooms = dungeon.adj_list[user.location] #this is a linked list
     #print(neighboring_rooms) debug
-    return neighboring_rooms[menu_input(neighboring_rooms) - 1].data
+    print()
+    print("Choose a room to travel to")
+    return neighboring_rooms[menu_input(neighboring_rooms) - 1].data #.data to extract from node
 
+#2
 def list_visited():
     journey = Stack() #holds the reversed history
     while visited.peek() != "Empty":
         room = visited.pop()
-        print(str(room), end = ", ")
+        if visited.peek() != "Empty":
+            print(str(room), end = " < ")
+        else:
+            print(str(room))
         journey.push(room)
     
     #now we refill
@@ -123,8 +150,9 @@ def menu_choice(choice):
             user.location = move_to_neighbor()
             visited.push(user.location)
 
-            if user.location.events.peek() != "Empty":
-                user.location.events.pop() #TODO finish this? idk
+            while user.location.events.peek() != "Empty":
+                event = user.location.events.pop() #TODO finish this? idk
+                event()
         case 2:
             list_visited()
     return True #everything else
