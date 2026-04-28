@@ -4,16 +4,7 @@ from modules.linked_list import LinkedList
 
 
 class Room():
-    def __init__(self, id, title, description, events):
-        """creates a room object, events must be iterable"""
-        self.id = id
-        self.title = title
-        self.description = description
-        self.events = Stack()
-        for item in events:
-            self.events.push(item)
-            #events will contain all items and monsters and whatnot
-    
+
     def __init__(self, id, title, description):
         self.id = id
         self.title = title
@@ -49,7 +40,10 @@ class Player():
         self.inventory.append(item)
     
     def display_inventory(self):
-        """returns the items in inventory in string form"""
+        """returns the items in inventory in string form, otherwise returns empty"""
+        if len(self.inventory) == 0:
+            return "Inventory empty."
+
         r_str = ""
         for item in self.inventory:
             r_str += str(item)
@@ -66,5 +60,11 @@ class Player():
         """returns a string representation of mana"""
         return f"[{str("~*" * self.mp)}{str("  " * (10 - self.mp))}]" 
 
+class Enemy():
+    def __init__(self, name, description, hp, deathrattle):
+        self.name = name
+        self.description = description
+        self.hp = hp
+        self.deathrattle = deathrattle
 
 

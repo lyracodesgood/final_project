@@ -5,12 +5,26 @@ Dungeon Crawler final project - Lyra
 from modules.graph import Graph
 from modules.stack import Stack
 from modules.linked_list import LinkedList
-from modules.world import Room, Player
+from modules.world import Room, Player, Enemy
 
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
-visited = Stack() #for remembering our path thru the dungeon
 
+items = ("Map", "Health Potion", "Pile of gold") #the things in the world
+
+goblin = Enemy(
+    "Goblin",
+    "A small green humanoid with sharp teeth and a bad temper.",
+    2,
+    "AiiIIIIIEEEEEeeeeeeeeeeeeooooOOOOOuuuughhhHHHHHHhhhhh!"
+    )
+
+dragon = Enemy(
+    "Dragon",
+    "A massive crimson beast with four legs and wings.",
+    10,
+    "SscccccccccccraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAaaa!!!"
+    )
 
 dungeon = Graph() #the graph
 worldmap = """
@@ -32,7 +46,7 @@ entry_chamber = Room(
     "A marble chamber"
     )
 
-visited.push(entry_chamber)
+entry_chamber.events.push(items[0]) #the map in the room
 
 goblin_den = Room(
     2,
@@ -85,11 +99,23 @@ dungeon.add_edge(old_airship_pad, rat_kings_chamber)
 
 user = Player(entry_chamber)
 
-menu = {1:"Move to a neighboring room.",
-        2:"Show travel history."} #base menu options here, TODO others added dynamically later?
+visited = Stack() #for remembering our path thru the dungeon
+visited.push(entry_chamber) #first room the player exists in
 
+
+
+menu = {
+    1:"Move to a neighboring room.",
+    2:"Show travel history.",
+    3:"Show player inventory",
+    4:"Use item from inventory"} #base menu options here, TODO others added dynamically later?
+
+#special zone for ingame items that have functions attached
 
 #functions ---------------------------------------------------------- functions
+
+def event_handler():
+    """makes enemies and items in rooms functional"""
 
 #1
 def move_to_neighbor():
@@ -114,6 +140,12 @@ def list_visited():
     #now we refill
     while journey.peek() != "Empty":
         visited.push(journey.pop())
+
+#3 Show player inventory
+
+#ALREADY IMPLENTED IN PLAYER
+
+#4 Use item from inventory
 
 #menus
 def menu_input(menu, bypass = False):
@@ -145,6 +177,7 @@ def menu_input(menu, bypass = False):
 def menu_choice(choice):
     """takes a number choice, executes functions corresponding to 
     the menu choices available, returns true or false to keep going or not"""
+    print() #whitespace
     match choice:
         case 1:
             user.location = move_to_neighbor()
@@ -153,8 +186,17 @@ def menu_choice(choice):
             while user.location.events.peek() != "Empty":
                 event = user.location.events.pop() #TODO finish this? idk
                 event()
+
         case 2:
             list_visited()
+        case 3:
+            print(user.display_inventory())
+        case 4:
+            print(user.display_inventory())
+            if len(user.inventory) != 0:
+                chosen_item_index = menu_input(user.inventory)
+        case 5:
+            pass
     return True #everything else
 
 def continue_game():
@@ -172,10 +214,21 @@ print("        WELCOME TO DYING WIZARD SIMULATOR!", end = "")
 while keep_going:
     #print(f"HP: {user.display_hp()} MP: {user.display_mp()}")
     print()
+    print(f"Current location: {user.location}")
+
+    #events in room happen here
+    while user.location.events.peek() != "Empty":
+        #TODO make functional
+        event = user.location.events.pop()
+        print(type(event))
+        if type(event) is str:
+            print("string")
+        elif type(event) == Enemy:
+            print("enemy")
+
+    #choose what to do
     menu_choice(menu_input(menu))
-    
+
 
     user.hp -= 1 #better go fast
-
-    #end loop evalutations
     keep_going = continue_game()
