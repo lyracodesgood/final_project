@@ -6,7 +6,6 @@ from modules.graph import Graph
 from modules.stack import Stack
 from modules.linked_list import LinkedList
 from modules.world import Room, Player
-import modules.artwork as art #evil but necessary
 
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
@@ -68,36 +67,8 @@ user = Player(entry_chamber)
 menu = {1:"Move to a neighboring room.",
         2:"Show travel history."} #base menu options here, TODO others added dynamically later?
 
-#screen and related display elements
-actionlines = LinkedList()
-for i in range(9):
-    actionlines.prepend("." * 30)
 
 #functions ---------------------------------------------------------- functions
-
-def print_screen():
-    """prints out the current screen"""
-    for i in range(10):
-        actionlines[i] = user.location.background[i]
-    screen = f"""
-o------------------------------o---------------------o 
-|{actionlines[0]}|                     | 
-|{actionlines[1]}|                     |
-|{actionlines[2]}|                     |
-|{actionlines[3]}|                     |
-|{actionlines[4]}|                     |
-|{actionlines[5]}|                     |
-|{actionlines[6]}|                     |
-|{actionlines[7]}|                     |
-|{actionlines[8]}|                     |
-o------------------------------o---------------------o
-HP: {user.display_hp()} MP: {user.display_mp()} """ #9 high, 52 wide inside
-    print(screen)
-
-def gleaming_sphere():
-    """prints out that the room is illumnated, returns code 'gs'"""
-    print("The room is illuminated with glowing light")
-    return "gs"
 
 #1
 def move_to_neighbor():
@@ -164,15 +135,13 @@ def continue_game():
        return False
     return True
 
-
 #game setup -------------------------------------------------------- game setup
 #dungeon.depth_first_traversal(entry_chamber)
 #print(type(entry_chamber))
-goblin_den.events.push(gleaming_sphere)
+
 print("        WELCOME TO DYING WIZARD SIMULATOR!", end = "")
 #game loop ---------------------------------------------------------- game loop
 while keep_going:
-    print_screen()
     #print(f"HP: {user.display_hp()} MP: {user.display_mp()}")
     print()
     menu_choice(menu_input(menu))
