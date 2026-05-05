@@ -10,6 +10,7 @@ from modules.world import Room, Player, Enemy
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
 
+#items and enemies, used by the event handler
 items = ("Map", "Health Potion", "Pile of gold") #the things in the world
 
 goblin = Enemy(
@@ -114,8 +115,34 @@ menu = {
 
 #functions ---------------------------------------------------------- functions
 
-def event_handler():
+def event_handler(events: Stack):
     """makes enemies and items in rooms functional"""
+    while events.peek() != "Empty":
+        event = events.pop()
+        #first differentiate between str and Enemy
+        if type(event) is str:
+            print("string") #debug
+            item_event_handler(event)
+
+        elif type(event) == Enemy:
+            print("enemy") #debug
+            battle_handler(event)
+
+#items ("Map", "Health Potion", "Pile of gold")
+def item_event_handler(item: str):
+    """does what the item is supposed to"""
+    match item:
+        case "Map":
+            user.inventory.append("Map")
+        case "Health Potion":
+            user.inventory.append("Health Potion")
+        case "Pile of Gold":
+            user.inventory.append("Pile of Gold")
+
+
+def battle_handler(bad_guy: Enemy):
+    """engages in battle with the specified enemy"""
+    pass
 
 #1
 def move_to_neighbor():
@@ -217,18 +244,10 @@ while keep_going:
     print(f"Current location: {user.location}")
 
     #events in room happen here
-    while user.location.events.peek() != "Empty":
-        #TODO make functional
-        event = user.location.events.pop()
-        print(type(event))
-        if type(event) is str:
-            print("string")
-        elif type(event) == Enemy:
-            print("enemy")
-
+    event_handler(user.location.events)
     #choose what to do
     menu_choice(menu_input(menu))
 
 
-    user.hp -= 1 #better go fast
+    user.hp -= 1 #uh oh
     keep_going = continue_game()
