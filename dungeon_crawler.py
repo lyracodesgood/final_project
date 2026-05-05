@@ -119,6 +119,11 @@ def event_handler(events: Stack):
     while events.peek() != "Empty":
         event = events.pop()
         #TODO this function
+        #battle
+        print(f"a {event.name} has ambushed you! Stand and fight!")
+        while event.hp > 0:
+            #battle loop TODO
+            pass
 
 #MENU FUNCTIONS
 #1
@@ -156,7 +161,7 @@ def pickup_item():
         return #byeee
     choice = menu_input(user.location.items) #getting which item to grab
     chosen_item = user.location.items.pop(choice - 1).data
-    #print(type(chosen_item)) debug
+    #print(type(chosen_item)) debugs
     user.inventory.append(chosen_item)
 
 #5 Show player inventory
@@ -201,6 +206,10 @@ def use_item():
 entry_chamber.items.append(game_map) #the map in the room
 entry_chamber.items.append(health_potion) #the map in the room
 
+#PUTTING ENEMIES IN ROOMS
+
+goblin_den.events.push(goblin)
+
 
 #menus input
 def menu_input(menu, bypass = False):
@@ -238,9 +247,9 @@ def menu_choice(choice):
             user.location = move_to_neighbor()
             visited.push(user.location)
 
-            while user.location.events.peek() != "Empty":
-                event = user.location.events.pop() #TODO finish this? idk
-                event()
+#            while user.location.events.peek() != "Empty":
+#                event = user.location.events.pop() #TODO finish this? idk
+                
         case 2:
             observe_surroundings()
         case 3:
