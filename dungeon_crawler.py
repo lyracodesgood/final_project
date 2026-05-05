@@ -5,18 +5,17 @@ Dungeon Crawler final project - Lyra
 from modules.graph import Graph
 from modules.stack import Stack
 from modules.linked_list import LinkedList
-from modules.world import Room, Player, Enemy
+from modules.world import Room, Player, Enemy, Item
 
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
 
-#items and enemies, used by the event handler
-items = ("Map", "Health Potion", "Pile of gold") #the things in the world
-
+#enemies, used by event handler
 goblin = Enemy(
     "Goblin",
     "A small green humanoid with sharp teeth and a bad temper.",
     2,
+    1,
     "AiiIIIIIEEEEEeeeeeeeeeeeeooooOOOOOuuuughhhHHHHHHhhhhh!"
     )
 
@@ -24,6 +23,7 @@ dragon = Enemy(
     "Dragon",
     "A massive crimson beast with four legs and wings.",
     10,
+    3,
     "SscccccccccccraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAaaa!!!"
     )
 
@@ -47,7 +47,6 @@ entry_chamber = Room(
     "A marble chamber"
     )
 
-entry_chamber.events.push(items[0]) #the map in the room
 
 goblin_den = Room(
     2,
@@ -107,43 +106,21 @@ visited.push(entry_chamber) #first room the player exists in
 
 menu = {
     1:"Move to a neighboring room.",
-    2:"Show travel history.",
-    3:"Show player inventory",
-    4:"Use item from inventory"} #base menu options here, TODO others added dynamically later?
-
-#special zone for ingame items that have functions attached
+    2:"Observe surroundings",
+    3:"Pick up item",
+    4:"Show travel history.",
+    5:"Show player inventory",
+    6:"Use item from inventory"} 
 
 #functions ---------------------------------------------------------- functions
 
 def event_handler(events: Stack):
-    """makes enemies and items in rooms functional"""
+    """makes enemies in rooms functional"""
     while events.peek() != "Empty":
         event = events.pop()
-        #first differentiate between str and Enemy
-        if type(event) is str:
-            print("string") #debug
-            item_event_handler(event)
+        #TODO this function
 
-        elif type(event) == Enemy:
-            print("enemy") #debug
-            battle_handler(event)
-
-#items ("Map", "Health Potion", "Pile of gold")
-def item_event_handler(item: str):
-    """does what the item is supposed to"""
-    match item:
-        case "Map":
-            user.inventory.append("Map")
-        case "Health Potion":
-            user.inventory.append("Health Potion")
-        case "Pile of Gold":
-            user.inventory.append("Pile of Gold")
-
-
-def battle_handler(bad_guy: Enemy):
-    """engages in battle with the specified enemy"""
-    pass
-
+#MENU FUNCTIONS
 #1
 def move_to_neighbor():
     """lists neighboring rooms based on user location"""
@@ -151,9 +128,9 @@ def move_to_neighbor():
     #print(neighboring_rooms) debug
     print()
     print("Choose a room to travel to")
-    return neighboring_rooms[menu_input(neighboring_rooms) - 1].data #.data to extract from node
+    return neighboring_rooms[menu_input(neighboring_rooms) - 1]
 
-#2
+#4
 def list_visited():
     journey = Stack() #holds the reversed history
     while visited.peek() != "Empty":
@@ -168,13 +145,64 @@ def list_visited():
     while journey.peek() != "Empty":
         visited.push(journey.pop())
 
-#3 Show player inventory
+#2 observe surroundings
+def observe_surroundings():
+    print(user.location.description)
+#3 pick up item
+def pickup_item():
+    #TODO make this functional so we can pickup items in rooms
+    if user.location.items.head == None:
+        print("No items to pick up.")
+        return #byeee
+    choice = menu_input(user.location.items) #getting which item to grab
+    chosen_item = user.location.items.pop(choice - 1).data
+    #print(type(chosen_item)) debug
+    user.inventory.append(chosen_item)
 
-#ALREADY IMPLENTED IN PLAYER
+#5 Show player inventory
+def display_inventory():
+    print(user.inventory)
 
-#4 Use item from inventory
 
-#menus
+#functions for items
+def display_map():
+    print(worldmap)
+
+def heal():
+    print("You uncap the bright red potion and gulp down the delicious contents.")
+    user.hp = 11 #11 so that when it ticks down by one u r still full hp
+
+def bite_coin():
+    print("You take one of the gold coins and bite down on it hard... Ouch! It's real!")
+
+#special zone for ingame items that have functions attached
+game_map = Item("Map", display_map, False)
+
+health_potion = Item("Health Potion", heal, True)
+
+gold_pile = Item("A great number of gold coins", bite_coin, False)
+
+#6 option
+def use_item():
+    if len(user.inventory) == 0:
+        print("No items in inventory.")
+        return
+    chosen_item_index = menu_input(user.inventory) - 1 #-1 for 0 indexing in pop
+
+    #WEIRDNESS ALERT
+    #for some reason I still need to add .data to access stuff here, very weird.
+    #print(chosen_item_index) debug
+    #print(type(user.inventory[chosen_item_index]))
+    user.inventory[chosen_item_index].use()
+    if user.inventory[chosen_item_index].onetime: #if its a onetime use
+        user.inventory.pop(chosen_item_index)
+
+#PUTTING ITEMS IN ROOMS
+entry_chamber.items.append(game_map) #the map in the room
+entry_chamber.items.append(health_potion) #the map in the room
+
+
+#menus input
 def menu_input(menu, bypass = False):
     """returns a number corresponding to menu choice, now for more iterables!"""
     if bypass == False:
@@ -213,35 +241,35 @@ def menu_choice(choice):
             while user.location.events.peek() != "Empty":
                 event = user.location.events.pop() #TODO finish this? idk
                 event()
-
         case 2:
-            list_visited()
+            observe_surroundings()
         case 3:
-            print(user.display_inventory())
+            pickup_item()
         case 4:
-            print(user.display_inventory())
-            if len(user.inventory) != 0:
-                chosen_item_index = menu_input(user.inventory)
+            list_visited()
         case 5:
-            pass
+            print(user.display_inventory())
+        case 6:
+            use_item()
     return True #everything else
 
 def continue_game():
     """checks if the game should end"""
     if user.hp < 1:
-       return False
+        return False
     return True
 
 #game setup -------------------------------------------------------- game setup
 #dungeon.depth_first_traversal(entry_chamber)
 #print(type(entry_chamber))
 
-print("        WELCOME TO DYING WIZARD SIMULATOR!", end = "")
+print("        WELCOME TO DYING WIZARD SIMULATOR!")
 #game loop ---------------------------------------------------------- game loop
 while keep_going:
-    #print(f"HP: {user.display_hp()} MP: {user.display_mp()}")
     print()
+    print(f"HP: {user.display_hp()}")
     print(f"Current location: {user.location}")
+    print()
 
     #events in room happen here
     event_handler(user.location.events)

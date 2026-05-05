@@ -95,14 +95,14 @@ class LinkedList():
         count = 0
         current_node  = self.head
         if(index == 0):
-            return current_node
+            return current_node.data
         while(current_node.next != None):
             current_node = current_node.next
             count += 1
             if(index == count): 
-                return current_node
+                return current_node.data
                 break
-        return current_node #in case we get to the end first
+        return current_node.data #in case we get to the end first
     
     def __setitem__(self, index, data):
         if(index == 0):

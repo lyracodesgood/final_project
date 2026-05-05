@@ -10,6 +10,7 @@ class Room():
         self.title = title
         self.description = description
         self.events = Stack()
+        self.items = LinkedList()
 
     def __eq__(self, other):
         """checks equivalence based on ID"""
@@ -46,10 +47,10 @@ class Player():
 
         r_str = ""
         for item in self.inventory:
-            r_str += str(item)
+            r_str =  r_str + str(item)
             if item.next == None:
                 break
-            r_str = ", "
+            r_str = r_str + ", "
         return r_str
     
     def display_hp(self):
@@ -61,10 +62,30 @@ class Player():
         return f"[{str("~*" * self.mp)}{str("  " * (10 - self.mp))}]" 
 
 class Enemy():
-    def __init__(self, name, description, hp, deathrattle):
+    def __init__(self, name, description, hp, dmg, deathrattle):
         self.name = name
         self.description = description
         self.hp = hp
+        self.dmg = dmg
         self.deathrattle = deathrattle
+
+class Item():
+    def __init__(self, name, func:function, onetime:bool):
+        self.name = name
+        self.func= func
+        self.onetime = onetime
+
+    def __str__(self):
+        """returns the string representation of the item, the name"""
+        return self.name
+    
+    def __eq__(self, other):
+        if self.name == other.name:
+            return True
+        return False
+
+    def use(self):
+        """uses the item"""
+        self.func()
 
 
