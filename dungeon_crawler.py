@@ -153,6 +153,14 @@ def list_visited():
 #2 observe surroundings
 def observe_surroundings():
     print(user.location.description)
+    if len(user.location.items) > 0:
+        print("items in room: ", end = "")
+        count = 0
+        for item in user.location.items:
+            print(f"{item}", end = "")
+            count += 1
+            if count != len(user.location.items):
+                print(", ", end = "")
 #3 pick up item
 def pickup_item():
     #TODO make this functional so we can pickup items in rooms
@@ -194,8 +202,6 @@ def use_item():
         return
     chosen_item_index = menu_input(user.inventory) - 1 #-1 for 0 indexing in pop
 
-    #WEIRDNESS ALERT
-    #for some reason I still need to add .data to access stuff here, very weird.
     #print(chosen_item_index) debug
     #print(type(user.inventory[chosen_item_index]))
     user.inventory[chosen_item_index].use()

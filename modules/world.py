@@ -55,7 +55,7 @@ class Player():
     
     def display_hp(self):
         """returns a string representation of hp"""
-        return f"[{str("<3" * self.hp)}{str("  " * (10 - self.hp))}]" 
+        return f"[{str("<3" * self.hp)}{str(" x" * (10 - self.hp))}]" 
     
     def display_mp(self):
         """returns a string representation of mana"""
