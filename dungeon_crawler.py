@@ -30,6 +30,16 @@ dragon = Enemy(
     "SscccccccccccraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAaaa!!!"
     )
 
+ratking = Enemy(
+    "Rat King Jormungario",
+    "A mighty beast writhing with tails and snouts",
+    15,
+    2,
+    "Five-tail whip attack",
+    "GRrrrrrrrrruuuuuuuuuuuuuuuuuuuuuuuuaaaaaaaaaaaaaaghhhhh!!!!!"
+)
+
+
 dungeon = Graph() #the graph
 worldmap = """
 o----------------------------------------------------o
@@ -104,8 +114,6 @@ user = Player(entry_chamber)
 
 visited = Stack() #for remembering our path thru the dungeon
 visited.push(entry_chamber) #first room the player exists in
-
-
 
 menu = {
     1:"Move to a neighboring room.",
@@ -244,6 +252,11 @@ def heal():
 def bite_coin():
     print("You take one of the gold coins and bite down on it hard... Ouch! It's real!")
 
+def whisper_riddle():
+    print("An otherworldy voice whispers in your ear: 42")
+    
+
+
 #special zone for ingame items that have functions attached
 game_map = Item("Map", display_map, False)
 
@@ -251,10 +264,15 @@ health_potion = Item("Health Potion", heal, True)
 
 gold_pile = Item("A great number of gold coins", bite_coin, False)
 
+riddle_answer = Item("A small scrap of paper with some writing on it.", whisper_riddle, False)
+
 #adding death items to enemies
 goblin.deathitems.append(health_potion)
 
 dragon.deathitems.append(gold_pile)
+
+ratking.deathitems.append(gold_pile)
+ratking.deathitems.append(riddle_answer)
 
 #6 option
 def use_item():
@@ -285,10 +303,9 @@ sewer.events.push(goblin.copy())
 
 old_airship_pad.events.push(goblin.copy())
 
-dragon_obs.push(dragon)
+dragon_obs.events.push(dragon)
 
-
-
+rat_kings_chamber.events.push(ratking)
 
 #menus input
 def menu_input(menu, bypass = False):
