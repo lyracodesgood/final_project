@@ -62,12 +62,27 @@ class Player():
         return f"[{str("~*" * self.mp)}{str("  " * (10 - self.mp))}]" 
 
 class Enemy():
-    def __init__(self, name, description, hp, dmg, deathrattle):
+    def __init__(self, name, description, hp, dmg, attack, deathrattle):
         self.name = name
         self.description = description
         self.hp = hp
         self.dmg = dmg
+        self.attack = attack
         self.deathrattle = deathrattle
+        self.deathitems = LinkedList()
+
+    def copy(self):
+        my_copy = Enemy(
+            self.name,
+            self.description,
+            self.hp,
+            self.dmg,
+            self.attack,
+            self.deathrattle
+            )
+        
+        my_copy.deathitems = self.deathitems
+        return my_copy
 
 class Item():
     def __init__(self, name, func:function, onetime:bool):
@@ -80,6 +95,8 @@ class Item():
         return self.name
     
     def __eq__(self, other):
+        if type(other) != Item:
+            return False
         if self.name == other.name:
             return True
         return False

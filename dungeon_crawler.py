@@ -6,6 +6,7 @@ from modules.graph import Graph
 from modules.stack import Stack
 from modules.linked_list import LinkedList
 from modules.world import Room, Player, Enemy, Item
+from random import randint
 
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
@@ -16,6 +17,7 @@ goblin = Enemy(
     "A small green humanoid with sharp teeth and a bad temper.",
     2,
     1,
+    "Spear",
     "AiiIIIIIEEEEEeeeeeeeeeeeeooooOOOOOuuuughhhHHHHHHhhhhh!"
     )
 
@@ -24,6 +26,7 @@ dragon = Enemy(
     "A massive crimson beast with four legs and wings.",
     10,
     3,
+    "Dragons breath",
     "SscccccccccccraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAaaa!!!"
     )
 
@@ -110,7 +113,14 @@ menu = {
     3:"Pick up item",
     4:"Show travel history.",
     5:"Show player inventory",
-    6:"Use item from inventory"} 
+    6:"Use item from inventory"
+    }
+
+battle_menu = {
+    1:"Cast Fireball at enemy",
+    2:"Use item from inventory",
+    3:"Attempt to run"
+} 
 
 #functions ---------------------------------------------------------- functions
 
@@ -122,8 +132,54 @@ def event_handler(events: Stack):
         #battle
         print(f"a {event.name} has ambushed you! Stand and fight!")
         while event.hp > 0:
-            #battle loop TODO
-            pass
+
+            print(f"HP: {user.display_hp()}")
+            print()
+            #player
+            player_choice = menu_input(battle_menu)
+
+            match player_choice:
+                case 1: #fireball
+                    print(f"You cast a mighty Fireball at the {event.name}.")
+                    print()
+
+                    dmg = randint(1,5)
+                    print(f"You deal {dmg} to the {event.name}.")
+                    event.hp -= dmg
+                case 2: #use item
+                    use_item()
+                case 3: #attempt to run
+                    coinflip = randint(1,2)
+                    if coinflip == 2:
+                        print("You run away like a coward.")
+                        return
+                    print("You fail to escape.")
+            
+            #enemy
+            print()
+            coinflip = randint(1,2)
+            if coinflip == 2:
+                print(f"You are struck by the {event.attack}, taking {event.dmg} damage.")
+                user.hp -= event.dmg
+            else:
+                print(f"The {event.name} misses you with its {event.attack}")
+
+            if user.hp <= 0:
+                print()
+                print(f"You have been slain by the {event.name}.")
+                return
+                
+        print()
+        print(f"You have defeated the {event.name}. Its lets out a terrible screech: {event.deathrattle}!!")
+        print()
+
+        for item in event.deathitems:
+            user.location.items.append(item.data)
+            print(f"The {event.name} drops a {item.data.name} on the ground as it dies.")
+            print()
+        #if there are items to drop
+        
+
 
 #MENU FUNCTIONS
 #1
@@ -195,15 +251,22 @@ health_potion = Item("Health Potion", heal, True)
 
 gold_pile = Item("A great number of gold coins", bite_coin, False)
 
+#adding death items to enemies
+goblin.deathitems.append(health_potion)
+
+dragon.deathitems.append(gold_pile)
+
 #6 option
 def use_item():
     if len(user.inventory) == 0:
         print("No items in inventory.")
         return
+    print()
     chosen_item_index = menu_input(user.inventory) - 1 #-1 for 0 indexing in pop
 
     #print(chosen_item_index) debug
     #print(type(user.inventory[chosen_item_index]))
+    print()
     user.inventory[chosen_item_index].use()
     if user.inventory[chosen_item_index].onetime: #if its a onetime use
         user.inventory.pop(chosen_item_index)
@@ -211,10 +274,20 @@ def use_item():
 #PUTTING ITEMS IN ROOMS
 entry_chamber.items.append(game_map) #the map in the room
 entry_chamber.items.append(health_potion) #the map in the room
+treasure_room.items.append(gold_pile) #gold in the treasure room
 
 #PUTTING ENEMIES IN ROOMS
 
-goblin_den.events.push(goblin)
+goblin_den.events.push(goblin.copy())
+goblin_den.events.push(goblin.copy()) #2 goblins in the den
+
+sewer.events.push(goblin.copy())
+
+old_airship_pad.events.push(goblin.copy())
+
+dragon_obs.push(dragon)
+
+
 
 
 #menus input
@@ -252,7 +325,6 @@ def menu_choice(choice):
         case 1:
             user.location = move_to_neighbor()
             visited.push(user.location)
-
 #            while user.location.events.peek() != "Empty":
 #                event = user.location.events.pop() #TODO finish this? idk
                 
@@ -288,9 +360,11 @@ while keep_going:
 
     #events in room happen here
     event_handler(user.location.events)
+    if user.hp <= 0: #added to handle deaths in battle, better implimentation i possible
+        break
+
     #choose what to do
     menu_choice(menu_input(menu))
-
 
     user.hp -= 1 #uh oh
     keep_going = continue_game()
