@@ -1,5 +1,8 @@
 """
 Dungeon Crawler final project - Lyra
+
+There is a way to win, you must find the answer to the riddle. If you don't
+want to bother, there is an answers file in modules.
 """
 
 from modules.graph import Graph
@@ -10,35 +13,7 @@ from random import randint
 
 #globals -------------------------------------------------------------- globals
 keep_going = True #for gameloop
-
-#enemies, used by event handler
-goblin = Enemy(
-    "Goblin",
-    "A small green humanoid with sharp teeth and a bad temper.",
-    2,
-    1,
-    "Spear",
-    "AiiIIIIIEEEEEeeeeeeeeeeeeooooOOOOOuuuughhhHHHHHHhhhhh!"
-    )
-
-dragon = Enemy(
-    "Dragon",
-    "A massive crimson beast with four legs and wings.",
-    10,
-    3,
-    "Dragons breath",
-    "SscccccccccccraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAaaa!!!"
-    )
-
-ratking = Enemy(
-    "Rat King Jormungario",
-    "A mighty beast writhing with tails and snouts",
-    15,
-    2,
-    "Five-tail whip attack",
-    "GRrrrrrrrrruuuuuuuuuuuuuuuuuuuuuuuuaaaaaaaaaaaaaaghhhhh!!!!!"
-)
-
+win_condition = False #for winning
 
 dungeon = Graph() #the graph
 worldmap = """
@@ -48,7 +23,7 @@ o----------------------------------------------------o
 |     |                    |                  s      |
 |   Goblin Den ------ Dragon Observatorium           |
 |     |                    |                         |
-|    Sewer               Delapidated Airship Pad     |
+|    Sewer               Dilapidated Airship Pad     |
 |       \                 /                          |
 |       Rat King's Chamber                           |
 |                                                    |
@@ -78,7 +53,7 @@ rat_kings_chamber = Room(
     )
 treasure_room = Room(
     5,
-    "Secret reasure Room",
+    "Secret Treasure Room",
     "An opulent chamber, wall to cieling gleaming and gold coated."
     )
 dragon_obs = Room(
@@ -131,6 +106,7 @@ battle_menu = {
 } 
 
 #functions ---------------------------------------------------------- functions
+#mostly...
 
 def event_handler(events: Stack):
     """makes enemies in rooms functional"""
@@ -138,6 +114,17 @@ def event_handler(events: Stack):
         event = events.pop()
         #TODO this function
         #battle
+        if type(event) == str: #---------------------------how to win------2win
+            print()
+            spoken_answer = input("What is the answer Wizard? ")
+            print()
+            if spoken_answer == "42":
+                print("Ahh, yes of course...")
+                return True
+            else:
+                print("That doesn't sound right...come back later...")
+            return False
+
         print(f"a {event.name} has ambushed you! Stand and fight!")
         while event.hp > 0:
 
@@ -155,12 +142,19 @@ def event_handler(events: Stack):
                     print(f"You deal {dmg} to the {event.name}.")
                     event.hp -= dmg
                 case 2: #use item
+                    print()
                     use_item()
                 case 3: #attempt to run
+                    print()
                     coinflip = randint(1,2)
                     if coinflip == 2:
                         print("You run away like a coward.")
-                        return
+                        #this is quite a mess
+                        storing_this_here_dont_look = visited.pop()
+                        user.location = visited.peek()
+                        visited.push(storing_this_here_dont_look)
+                        visited.push(user.location)
+                        return False
                     print("You fail to escape.")
             
             #enemy
@@ -175,7 +169,7 @@ def event_handler(events: Stack):
             if user.hp <= 0:
                 print()
                 print(f"You have been slain by the {event.name}.")
-                return
+                return False
                 
         print()
         print(f"You have defeated the {event.name}. Its lets out a terrible screech: {event.deathrattle}!!")
@@ -186,13 +180,13 @@ def event_handler(events: Stack):
             print(f"The {event.name} drops a {item.data.name} on the ground as it dies.")
             print()
         #if there are items to drop
-        
+        return False #in case, added at the very end of coding, function returned nothing b4
 
 
 #MENU FUNCTIONS
 #1
 def move_to_neighbor():
-    """lists neighboring rooms based on user location"""
+    """goes to neighboring rooms based on user location"""
     neighboring_rooms = dungeon.adj_list[user.location] #this is a linked list
     #print(neighboring_rooms) debug
     print()
@@ -201,6 +195,7 @@ def move_to_neighbor():
 
 #4
 def list_visited():
+    """lists visited rooms based on location"""
     journey = Stack() #holds the reversed history
     while visited.peek() != "Empty":
         room = visited.pop()
@@ -216,6 +211,7 @@ def list_visited():
 
 #2 observe surroundings
 def observe_surroundings():
+    """prints the room description and the items in the room, if any."""
     print(user.location.description)
     if len(user.location.items) > 0:
         print("items in room: ", end = "")
@@ -227,7 +223,7 @@ def observe_surroundings():
                 print(", ", end = "")
 #3 pick up item
 def pickup_item():
-    #TODO make this functional so we can pickup items in rooms
+    """allows the user to pick up items in the rooms."""
     if user.location.items.head == None:
         print("No items to pick up.")
         return #byeee
@@ -257,7 +253,7 @@ def whisper_riddle():
     
 
 
-#special zone for ingame items that have functions attached
+#special assignement zone for ingame items that have functions attached
 game_map = Item("Map", display_map, False)
 
 health_potion = Item("Health Potion", heal, True)
@@ -266,13 +262,54 @@ gold_pile = Item("A great number of gold coins", bite_coin, False)
 
 riddle_answer = Item("A small scrap of paper with some writing on it.", whisper_riddle, False)
 
+#enemies, used by event handler
+goblin = Enemy(
+    "Goblin",
+    "A small green humanoid with sharp teeth and a bad temper.",
+    2,
+    1,
+    "Spear",
+    "AiiIIIIIEEEEEeeeeeeeeeeeeooooOOOOOuuuughhhHHHHHHhhhhh!"
+    )
+
+dragon = Enemy(
+    "Dragon",
+    "A massive crimson beast with four legs and wings.",
+    10,
+    3,
+    "Dragons breath",
+    "SscccccccccccraaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAaaa!!!"
+    )
+
+ratking = Enemy(
+    "Rat King Jormungario",
+    "A mighty beast writhing with tails and snouts",
+    15,
+    2,
+    "Five-tail whip attack",
+    "GRrrrrrrrrruuuuuuuuuuuuuuuuuuuuuuuuaaaaaaaaaaaaaaghhhhh!!!!!"
+)
+
+impling = Enemy(
+    "Impling",
+    "A bright pink demon.",
+    6,
+    4,
+    "Soul-Steal Gaze",
+    "Fzzzttttt!"
+)
+
 #adding death items to enemies
 goblin.deathitems.append(health_potion)
 
 dragon.deathitems.append(gold_pile)
+dragon.deathitems.append(health_potion)
 
 ratking.deathitems.append(gold_pile)
 ratking.deathitems.append(riddle_answer)
+
+for i in range(10):
+    impling.deathitems.append(health_potion) #many potions
 
 #6 option
 def use_item():
@@ -301,11 +338,15 @@ goblin_den.events.push(goblin.copy()) #2 goblins in the den
 
 sewer.events.push(goblin.copy())
 
+old_airship_pad.events.push("Riddle")
 old_airship_pad.events.push(goblin.copy())
 
 dragon_obs.events.push(dragon)
 
 rat_kings_chamber.events.push(ratking)
+
+treasure_room.events.push(impling)
+
 
 #menus input
 def menu_input(menu, bypass = False):
@@ -367,7 +408,9 @@ def continue_game():
 #dungeon.depth_first_traversal(entry_chamber)
 #print(type(entry_chamber))
 
-print("        WELCOME TO DYING WIZARD SIMULATOR!")
+print("WELCOME TO DYING WIZARD SIMULATOR!")
+print()
+print("Please be mindful of your hp. You will lose 1hp every time you move.")
 #game loop ---------------------------------------------------------- game loop
 while keep_going:
     print()
@@ -376,12 +419,20 @@ while keep_going:
     print()
 
     #events in room happen here
-    event_handler(user.location.events)
-    if user.hp <= 0: #added to handle deaths in battle, better implimentation i possible
+    win_condition = event_handler(user.location.events)
+    if user.hp <= 0 or win_condition: #added to handle deaths in battle, better implimentation i possible
         break
 
+    if user.hp == 1:
+        print("CRITICAL HITPOINTS!!!!")
     #choose what to do
     menu_choice(menu_input(menu))
 
     user.hp -= 1 #uh oh
     keep_going = continue_game()
+
+#end game states
+if user.hp <= 0:
+    print("You have died Wizard.")
+else:
+    print("You have escaped Wizard. You are healed. Good luck.")
